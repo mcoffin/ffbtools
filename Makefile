@@ -1,5 +1,6 @@
 #
 # Makefile for ffbtools
+# 
 #
 # Copyright 2019 Bernat Arlandis <bernat@hotmail.com>
 #
@@ -27,8 +28,9 @@ DEPS := $(OBJS:.o=.d)
 INC_DIRS := $(shell find $(SRC_DIR) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -Wall
+CFLAGS += $(INC_FLAGS) -MMD -MP -Wall
 LDLIBS ?= -lm
+LDFLAGS += -fPIC
 
 all: $(BUILD_DIR) \
 	$(BUILD_DIR)/libffbwrapper-i386.so \
@@ -39,20 +41,20 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(BUILD_DIR)/libffbwrapper-i386.so: $(SRC_DIR)/ffbwrapper.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) -m32 -fPIC -shared $< -o $@ -lrt -ldl
+	$(CC) $(CFLAGS) $(CFLAGS) $(LDFLAGS) -m32 -shared $< -o $@ -lrt -ldl
 
 $(BUILD_DIR)/libffbwrapper-x86_64.so: $(SRC_DIR)/ffbwrapper.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) -fPIC -shared $< -o $@ -lrt -ldl
+	$(CC) $(CFLAGS) $(CFLAGS) $(LDFLAGS) -shared $< -o $@ -lrt -ldl
 
 $(BUILD_DIR)/ffbplay: $(BUILD_DIR)/ffbplay.o
 	$(CC) $(LDFLAGS) -o $@ $< $(LDLIBS)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 .PHONY: directories clean
 
 clean:
-	$(RM) -r $(BUILD_DIR)
+	[ ! -d $(BUILD_DIR) ] || $(RM) -r $(BUILD_DIR)
 
 -include $(DEPS)
